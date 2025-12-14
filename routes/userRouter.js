@@ -22,6 +22,10 @@ const userRouter = express.Router();
 // GET /users - list all users
 userRouter.get("/", listUsers);
 
+// GET /users/:id/dashboard
+// userRouter.get("/:id/dashboard", getUserDashboard);
+userRouter.get("/dashboard", authMiddleware, getUserDashboard);
+
 // GET /users/:id - get user by id
 userRouter.get("/:id", getUserById);
 
@@ -66,9 +70,6 @@ userRouter.get(
 		res.redirect(`http://localhost:5173?token=${token}`);
 	}
 );
-
-// GET /users/:id/dashboard
-userRouter.get("/:id/dashboard", getUserDashboard);
 
 
 // GET /users/:id/availability
