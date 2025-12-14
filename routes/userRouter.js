@@ -8,6 +8,7 @@ const {
 	deleteUser,
 	registerUser,
 	loginUser,
+	getUserDashboard
 } = require("../controllers/userController");
 
 
@@ -65,6 +66,11 @@ userRouter.get(
 		res.redirect(`http://localhost:5173?token=${token}`);
 	}
 );
+
+// GET /users/:id/dashboard
+userRouter.get("/:id/dashboard", getUserDashboard);
+
+
 // GET /users/:id/availability
 userRouter.get("/:id/availability", async (req, res) => {
   try {
