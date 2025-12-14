@@ -35,8 +35,8 @@ function adminOnly(req, res, next) {
 }
 
 //create the payload for JWT
-function signToken({ username, email, _id }) {
-	const payload = { username, email, _id };
+function signToken({ username, email, _id, role }) {
+	const payload = { username, email, _id, role };
 	return jwt.sign({ data: payload }, secret, { expiresIn: expiration });
 }
 

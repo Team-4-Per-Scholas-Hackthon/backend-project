@@ -35,8 +35,16 @@ const UserSchema = new Schema(
 		// Alumni fields
 		skills: { type: [String], default: [] },
 		cohort: { type: String, trim: true },
-		// availability: { type: [AvailabilitySchema], default: [] }, // sessions / availability
 		sessions: { type: [Date], default: [] },
+
+		// Availability: list of specific dates with optional time ranges
+		availability: [
+			{
+				date: { type: Date, required: true }, // exact date user is available
+				startTime: { type: String }, // optional, e.g. "09:00"
+				endTime: { type: String }, // optional, e.g. "17:00"
+			},
+		],
 	},
 	{ timestamps: true }
 );
