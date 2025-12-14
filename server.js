@@ -17,6 +17,9 @@ app.use(morgan("dev"));
 app.use(cors({ origin: process.env.FRONTEND_URL }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+// for availability
+app.use("/availability", require("./routes/availabilityRouter"));
 require("./config/passport");
 
 app.get("/", (req, res) => {

@@ -10,6 +10,7 @@ const {
 	loginUser,
 } = require("../controllers/userController");
 
+
 const { authMiddleware, adminOnly, signToken } = require("../middleware/auth");
 
 //passport
@@ -64,5 +65,25 @@ userRouter.get(
 		res.redirect(`http://localhost:5173?token=${token}`);
 	}
 );
+// GET /users/:id/availability
+userRouter.get("/:id/availability", async (req, res) => {
+  try {
+    const User = require("../models/User");
+
+    const user = await User.findById(req.params.id)
+      .select("username firstname lastname availability");
+
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    const events = user.availability.map((a) => ({
+      title: user.firstname || user.username,
+      date: a.date.toISOString().slice(0, 10), // YYYY-MM-DD for FullCalendar
+    }));
+
+    res.json(events);
+  } catch (err) {
+    res.status(400).json({ error: "Invalid request" });
+  }
+});
 
 module.exports = userRouter;

@@ -5,7 +5,7 @@ const expiration = "24h"; // Token will be valid for 2 hours
 
 async function listUsers(req, res) {
 	try {
-		const user = await User.find();
+		const users = await User.find();
 		res.json(users);
 	} catch (err) {
 		res.status(500).json({ error: "Server error" });
