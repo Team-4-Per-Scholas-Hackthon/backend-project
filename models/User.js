@@ -12,6 +12,20 @@ const { Schema } = mongoose;
 
 const UserSchema = new Schema(
 	{
+
+		// models/User.js – add fields Amaris
+selectedSkills: { type: [String], default: [] },
+bio: { type: String, default: "" },
+track: { type: String, default: "" },
+preferredSessionLength: { type: Number, default: 30 },
+preferredSessionType: {
+  type: String,
+  enum: ["video", "chat", "both"],
+  default: "both",
+},
+timezone: { type: String, default: "America/New_York" },
+// Amaris above
+
 		username: { type: String, required: true, unique: true, trim: true },
 		firstname: { type: String, trim: true },
 		lastname: { type: String, trim: true },
@@ -48,6 +62,8 @@ const UserSchema = new Schema(
 	},
 	{ timestamps: true }
 );
+
+
 
 // // remove password when converting to JSON
 // UserSchema.methods.toJSON = function () {

@@ -13,6 +13,8 @@ const {
 
 const { authMiddleware, adminOnly, signToken } = require("../middleware/auth");
 
+const User = require("../models/User"); //Amaris
+
 //passport
 const passport = require("passport");
 
@@ -83,6 +85,114 @@ userRouter.get("/:id/availability", async (req, res) => {
     res.json(events);
   } catch (err) {
     res.status(400).json({ error: "Invalid request" });
+  }
+});
+
+// GET /users/:id/dashboard  (protected)
+userRouter.get("/:id/dashboard", authMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Only allow user to see their own dashboard unless admin
+    if (req.user._id !== id && req.user.role !== "admin") {
+      return res.status(403).json({ message: "Not authorized to view this dashboard" });
+    }
+
+    // Base user record
+    const user = await User.findById(id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    // Here you can aggregate whatever the dashboard needs
+    // Example placeholders:
+    // const sessions = await Session.find({ user: id });
+    // const learnerProfile = await LearnerProfile.findOne({ user: id });
+    // const tutorStats = await TutorStats.findOne({ user: id });
+
+    res.json({
+      user,
+      role: user.role,
+      // sessions,
+      // learnerProfile,
+      // tutorStats,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Error loading dashboard" });
+  }
+});
+
+// Amaris
+// Get current learner profile
+userRouter.get("/me/profile", authMiddleware, async (req, res) => {
+  if (!req.user) {
+    return res.status(401).json({ message: "Not authenticated" });
+  }
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user || user.role !== "learner") {
+      return res.status(403).json({ message: "Not a learner" });
+    }
+
+    res.json({
+      selectedSkills: user.selectedSkills || [],
+      bio: user.bio || "",
+      cohort: user.cohort || "",
+      track: user.track || "",
+      preferredSessionLength: user.preferredSessionLength || 30,
+      preferredSessionType: user.preferredSessionType || "both",
+      timezone: user.timezone || "America/New_York",
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to load learner profile" });
+  }
+});
+
+// Create or update learner profile
+userRouter.put("/me/profile", authMiddleware, async (req, res) => {
+  if (!req.user) {
+    return res.status(401).json({ message: "Not authenticated" });
+  }
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user || user.role !== "learner") {
+      return res.status(403).json({ message: "Not a learner" });
+    }
+
+    const {
+      selectedSkills,
+      bio,
+      cohort,
+      track,
+      preferredSessionLength,
+      preferredSessionType,
+      timezone,
+    } = req.body;
+
+    if (selectedSkills) user.selectedSkills = selectedSkills;
+    if (bio !== undefined) user.bio = bio;
+    if (cohort !== undefined) user.cohort = cohort;
+    if (track !== undefined) user.track = track;
+    if (preferredSessionLength !== undefined)
+      user.preferredSessionLength = preferredSessionLength;
+    if (preferredSessionType !== undefined)
+      user.preferredSessionType = preferredSessionType;
+    if (timezone !== undefined) user.timezone = timezone;
+
+    await user.save();
+
+    res.json({
+      selectedSkills: user.selectedSkills,
+      bio: user.bio,
+      cohort: user.cohort,
+      track: user.track,
+      preferredSessionLength: user.preferredSessionLength,
+      preferredSessionType: user.preferredSessionType,
+      timezone: user.timezone,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to save learner profile" });
   }
 });
 
