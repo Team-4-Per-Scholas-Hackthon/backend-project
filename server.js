@@ -20,6 +20,7 @@ app.use(express.urlencoded({ extended: false }));
 
 // for availability
 app.use("/availability", require("./routes/availabilityRouter"));
+app.use("/requests", require("./routes/requestRouter"));
 require("./config/passport");
 
 app.get("/", (req, res) => {

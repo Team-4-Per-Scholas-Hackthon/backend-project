@@ -114,6 +114,61 @@ async function loginUser(req, res) {
 		res.json({ token, dbUser });
 	} catch (error) {}
 }
+async function getUserDashboard(req, res) {
+  try {
+    if (!req.user) return res.status(401).json({ message: "Unauthorized" });
+
+    const user = await User.findById(req.user._id).select(
+      "username firstname lastname email role skills cohort sessions availability createdAt updatedAt"
+    );
+
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    res.json({
+      _id: user._id,
+      username: user.username,
+      firstname: user.firstname,
+      lastname: user.lastname,
+      email: user.email,
+      role: user.role,
+      skills: user.skills,
+      cohort: user.cohort,
+      sessions: user.sessions,
+      availability: user.availability,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    });
+  } catch (err) {
+    res.status(400).json({ error: "Invalid request" });
+  }
+}
+// async function getUserDashboard(req, res) {
+//   try {
+//     const user = await User.findById(req.params.id).select(
+//       "username firstname lastname email role skills cohort sessions availability createdAt updatedAt"
+//     );
+
+//     if (!user) return res.status(404).json({ error: "User not found" });
+
+//     res.json({
+//       _id: user._id,
+//       username: user.username,
+//       firstname: user.firstname,
+//       lastname: user.lastname,
+//       email: user.email,
+//       role: user.role,
+//       skills: user.skills,
+//       cohort: user.cohort,
+//       sessions: user.sessions,
+//       availability: user.availability,
+//       createdAt: user.createdAt,
+//       updatedAt: user.updatedAt,
+//     });
+//   } catch (err) {
+//     res.status(400).json({ error: "Invalid request" });
+//   }
+// }
+
 
 module.exports = {
 	listUsers,
@@ -123,4 +178,5 @@ module.exports = {
 	deleteUser,
 	registerUser,
 	loginUser,
+	getUserDashboard
 };
