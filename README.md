@@ -40,7 +40,7 @@ Per Scholas wants to strengthen the bridge between graduates and current learner
 - Admin: manages users, moderation, monitoring, and AI matching rules
 
 ## Tech Stack:
-# [Backend](https://github.com/Team-4-Per-Scholas-Hackthon/frontend-project)
+# Backend
 
 - Node.js + Express
 - MongoDB + Mongoose
@@ -48,7 +48,7 @@ Per Scholas wants to strengthen the bridge between graduates and current learner
 - Passport + passport-github2 (GitHub OAuth)
 - dotenv, cors, morgan, nodemon
 
-# Frontend
+# [Frontend](https://github.com/Team-4-Per-Scholas-Hackthon/frontend-project)
 
 - React (Vite)
 - React Router (recommended)
