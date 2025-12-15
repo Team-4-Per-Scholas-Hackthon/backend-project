@@ -8,7 +8,8 @@ const {
 	deleteUser,
 	registerUser,
 	loginUser,
-	getUserDashboard
+	getUserDashboard,
+	createTutoringRequest
 } = require("../controllers/userController");
 
 
