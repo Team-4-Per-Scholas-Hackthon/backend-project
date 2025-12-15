@@ -40,7 +40,7 @@ Per Scholas wants to strengthen the bridge between graduates and current learner
 - Admin: manages users, moderation, monitoring, and AI matching rules
 
 ## Tech Stack:
-# Backend
+# [Backend](https://github.com/Team-4-Per-Scholas-Hackthon/frontend-project)
 
 - Node.js + Express
 - MongoDB + Mongoose
