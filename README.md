@@ -48,7 +48,7 @@ Per Scholas wants to strengthen the bridge between graduates and current learner
 - Passport + passport-github2 (GitHub OAuth)
 - dotenv, cors, morgan, nodemon
 
-# Backend
+# Frontend
 
 - React (Vite)
 - React Router (recommended)
@@ -59,37 +59,37 @@ Per Scholas wants to strengthen the bridge between graduates and current learner
 ## Project Structure (Backend)
 
 backend-project
-├── config/
-│   ├── dbConnect.js
-│   └── passport.js
-├── controllers/
-│   ├── userController.js
-│   └── requestController.js
-├── middleware/
-│   └── auth.js
-├── models/
-│   ├── User.js
-│   └── TutoringRequest.js
-├── routes/
-│   ├── userRouter.js
-│   └── requestRouter.js
-├── server.js
-├── package.json
-└── .env
+ config/
+    dbConnect.js
+    passport.js
+ controllers/
+    userController.js
+    requestController.js
+ middleware/
+    auth.js
+ models/
+    User.js
+    TutoringRequest.js
+ routes/
+    userRouter.js
+    requestRouter.js
+ server.js
+ package.json
+ .env
 
 Front-project
-├──src/
-├── api/
-├──   client.js          # fetch helpers + token header
-├── pages/
-├──   Login.jsx
-├──   Dashboard.jsx
-├── components/
-├──   Calendar.jsx
-├──   RequestForm.jsx
-├──   RequestsList.jsx
-├── routes/
-├──    AppRoutes.jsx
+src/
+api/
+ client.js          # fetch helpers + token header
+pages/
+ Login.jsx
+ Dashboard.jsx
+ components/
+  Calendar.jsx
+   RequestForm.jsx
+   RequestsList.jsx
+ routes/
+    AppRoutes.jsx
 
 # API Endpoints: 
 - Register:                                 POST /users/register
