@@ -61,7 +61,11 @@ async function registerUser(req, res) {
 		if (alreadyExist) {
 			return res.status(400).json({ message: "Email already exists" });
 		}
-		/** You can also check for username, same login as above */
+
+		// Validate role
+		if (!["learner", "alumni"].includes(req.body.role)) {
+			return res.status(400).json({ message: "Invalid role selected" });
+		}
 
 		//create a new user
 		const user = await User.create(req.body);
