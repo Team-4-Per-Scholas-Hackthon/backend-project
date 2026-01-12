@@ -129,19 +129,97 @@ userRouter.get("/:id/dashboard", authMiddleware, async (req, res) => {
   }
 });
 
-// Amaris
-// Get current learner profile
+// // Amaris
+// // Get current learner profile
+// userRouter.get("/me/profile", authMiddleware, async (req, res) => {
+//   if (!req.user) {
+//     return res.status(401).json({ message: "Not authenticated" });
+//   }
+//   try {
+//     const user = await User.findById(req.user._id);
+//     if (!user || user.role !== "learner") {
+//       return res.status(403).json({ message: "Not a learner" });
+//     }
+
+//     res.json({
+//       selectedSkills: user.selectedSkills || [],
+//       bio: user.bio || "",
+//       cohort: user.cohort || "",
+//       track: user.track || "",
+//       preferredSessionLength: user.preferredSessionLength || 30,
+//       preferredSessionType: user.preferredSessionType || "both",
+//       timezone: user.timezone || "America/New_York",
+//     });
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ message: "Failed to load learner profile" });
+//   }
+// });
+
+// // Create or update learner profile
+// userRouter.put("/me/profile", authMiddleware, async (req, res) => {
+//   if (!req.user) {
+//     return res.status(401).json({ message: "Not authenticated" });
+//   }
+//   try {
+//     const user = await User.findById(req.user._id);
+//     if (!user || user.role !== "learner") {
+//       return res.status(403).json({ message: "Not a learner" });
+//     }
+
+//     const {
+//       selectedSkills,
+//       bio,
+//       cohort,
+//       track,
+//       preferredSessionLength,
+//       preferredSessionType,
+//       timezone,
+//     } = req.body;
+
+//     if (selectedSkills) user.selectedSkills = selectedSkills;
+//     if (bio !== undefined) user.bio = bio;
+//     if (cohort !== undefined) user.cohort = cohort;
+//     if (track !== undefined) user.track = track;
+//     if (preferredSessionLength !== undefined)
+//       user.preferredSessionLength = preferredSessionLength;
+//     if (preferredSessionType !== undefined)
+//       user.preferredSessionType = preferredSessionType;
+//     if (timezone !== undefined) user.timezone = timezone;
+
+//     await user.save();
+
+//     res.json({
+//       selectedSkills: user.selectedSkills,
+//       bio: user.bio,
+//       cohort: user.cohort,
+//       track: user.track,
+//       preferredSessionLength: user.preferredSessionLength,
+//       preferredSessionType: user.preferredSessionType,
+//       timezone: user.timezone,
+//     });
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ message: "Failed to save learner profile" });
+//   }
+// });
+
+
+
+// Amaris – unified "me profile" for learner + alumni
 userRouter.get("/me/profile", authMiddleware, async (req, res) => {
   if (!req.user) {
     return res.status(401).json({ message: "Not authenticated" });
   }
   try {
     const user = await User.findById(req.user._id);
-    if (!user || user.role !== "learner") {
-      return res.status(403).json({ message: "Not a learner" });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
     }
 
-    res.json({
+    // Common fields
+    const base = {
+      role: user.role,
       selectedSkills: user.selectedSkills || [],
       bio: user.bio || "",
       cohort: user.cohort || "",
@@ -149,22 +227,26 @@ userRouter.get("/me/profile", authMiddleware, async (req, res) => {
       preferredSessionLength: user.preferredSessionLength || 30,
       preferredSessionType: user.preferredSessionType || "both",
       timezone: user.timezone || "America/New_York",
-    });
+      skills: user.skills || [],
+      availability: user.availability || [],
+    };
+
+    // You can branch on role if the frontend ever needs different shapes
+    return res.json(base);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Failed to load learner profile" });
+    res.status(500).json({ message: "Failed to load profile" });
   }
 });
 
-// Create or update learner profile
 userRouter.put("/me/profile", authMiddleware, async (req, res) => {
   if (!req.user) {
     return res.status(401).json({ message: "Not authenticated" });
   }
   try {
     const user = await User.findById(req.user._id);
-    if (!user || user.role !== "learner") {
-      return res.status(403).json({ message: "Not a learner" });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
     }
 
     const {
@@ -175,32 +257,44 @@ userRouter.put("/me/profile", authMiddleware, async (req, res) => {
       preferredSessionLength,
       preferredSessionType,
       timezone,
+      skills,
+      availability,
     } = req.body;
 
-    if (selectedSkills) user.selectedSkills = selectedSkills;
+    // Shared/learner fields
+    if (selectedSkills !== undefined) user.selectedSkills = selectedSkills;
     if (bio !== undefined) user.bio = bio;
     if (cohort !== undefined) user.cohort = cohort;
     if (track !== undefined) user.track = track;
-    if (preferredSessionLength !== undefined)
+    if (preferredSessionLength !== undefined) {
       user.preferredSessionLength = preferredSessionLength;
-    if (preferredSessionType !== undefined)
+    }
+    if (preferredSessionType !== undefined) {
       user.preferredSessionType = preferredSessionType;
+    }
     if (timezone !== undefined) user.timezone = timezone;
+
+    // Alumni‑style fields
+    if (skills !== undefined) user.skills = skills;
+    if (availability !== undefined) user.availability = availability;
 
     await user.save();
 
     res.json({
-      selectedSkills: user.selectedSkills,
-      bio: user.bio,
-      cohort: user.cohort,
-      track: user.track,
-      preferredSessionLength: user.preferredSessionLength,
-      preferredSessionType: user.preferredSessionType,
-      timezone: user.timezone,
+      role: user.role,
+      selectedSkills: user.selectedSkills || [],
+      bio: user.bio || "",
+      cohort: user.cohort || "",
+      track: user.track || "",
+      preferredSessionLength: user.preferredSessionLength || 30,
+      preferredSessionType: user.preferredSessionType || "both",
+      timezone: user.timezone || "America/New_York",
+      skills: user.skills || [],
+      availability: user.availability || [],
     });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Failed to save learner profile" });
+    res.status(500).json({ message: "Failed to save profile" });
   }
 });
 
