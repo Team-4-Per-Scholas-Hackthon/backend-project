@@ -6,7 +6,7 @@ const dbConnect = require("./config/dbConnect");
 
 dotenv.config();
 
-//Database COnnection
+//Database Connection
 dbConnect();
 
 const app = express();
@@ -14,21 +14,36 @@ const PORT = process.env.PORT || 4000;
 
 // ===== Middleware =====
 app.use(morgan("dev"));
-app.use(cors({ origin: process.env.FRONTEND_URL }));
+
+// Updated CORS configuration
+app.use(cors({
+  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  credentials: true
+}));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// for availability
-app.use("/availability", require("./routes/availabilityRouter"));
-app.use("/requests", require("./routes/requestRouter"));
+// Passport config
 require("./config/passport");
 
-app.get("/", (req, res) => {
-	res.send("Hello World!");
-});
 // ===== Routes =====
 app.use("/users", require("./routes/userRouter"));
+app.use("/requests", require("./routes/requestRouter"));
+app.use("/availability", require("./routes/availabilityRouter"));
+
+app.get("/", (req, res) => {
+	res.send("PeerTrack+ API is running!");
+});
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error("Unhandled error:", err);
+  res.status(500).json({ 
+    message: "Internal server error", 
+    error: err.message 
+  });
+});
 
 app.listen(PORT, () => {
 	console.log(`Server is running on http://localhost:${PORT}`);

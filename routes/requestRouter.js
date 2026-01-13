@@ -9,14 +9,16 @@ const {
   declineRequest,
 } = require("../controllers/requestController");
 
-// GET /requests
+// GET /requests - Get requests (learner sees their own, alumni sees pending ones)
 requestRouter.get("/", authMiddleware, getRequests);
 
-// POST /requests
+// POST /requests - Create new request (learners only)
 requestRouter.post("/", authMiddleware, createTutoringRequest);
 
-// for tutor to accept or decline a request
+// PATCH /requests/:id/accept - Accept a request (alumni only)
 requestRouter.patch("/:id/accept", authMiddleware, acceptRequest);
+
+// PATCH /requests/:id/decline - Decline a request (alumni only)
 requestRouter.patch("/:id/decline", authMiddleware, declineRequest);
 
 module.exports = requestRouter;
