@@ -54,30 +54,107 @@ async function deleteUser(req, res) {
 	}
 }
 
+// async function registerUser(req, res) {
+// 	try {
+		
+// 		//check if email exist
+// 		const alreadyExist = await User.findOne({ email: req.body.email });
+// 		if (alreadyExist) {
+// 			return res.status(400).json({ message: "Email already exists" });
+// 		}
+// 		/** You can also check for username, same login as above */
+
+// 		//create a new user
+// 		const user = await User.create(req.body);
+
+// 		res.status(201).json({
+// 			message: `User created: username: ${req.body.username} and email: ${req.body.email}`,
+// 		});
+// 	} catch (error) {
+// 		console.log(error.message);
+// 		//check for username duplication error
+// 		if (error.code === 11000) {
+// 			res.status(400).json({ message: "Username already in use" });
+// 		} else {
+// 			res.status(500).send("An unexpected error occurred.");
+// 		}
+// 	}
+// }
+
+
 async function registerUser(req, res) {
-	try {
-		//check if email exist
-		const alreadyExist = await User.findOne({ email: req.body.email });
-		if (alreadyExist) {
-			return res.status(400).json({ message: "Email already exists" });
-		}
-		/** You can also check for username, same login as above */
+    try {
+        console.log("=== REGISTRATION ATTEMPT ===");
+        console.log("Request body:", req.body);
+        
+        const { username, email, password, role } = req.body;
 
-		//create a new user
-		const user = await User.create(req.body);
+        // Validate required fields
+        if (!username || !email || !password) {
+            console.log("Missing required fields");
+            return res.status(400).json({ 
+                message: "Username, email, and password are required" 
+            });
+        }
 
-		res.status(201).json({
-			message: `User created: username: ${req.body.username} and email: ${req.body.email}`,
-		});
-	} catch (error) {
-		console.log(error.message);
-		//check for username duplication error
-		if (error.code === 11000) {
-			res.status(400).json({ message: "Username already in use" });
-		} else {
-			res.status(500).send("An unexpected error occurred.");
-		}
-	}
+        console.log("Checking if email exists...");
+        const alreadyExist = await User.findOne({ email });
+        if (alreadyExist) {
+            console.log("Email already exists");
+            return res.status(400).json({ message: "Email already exists" });
+        }
+
+        console.log("Checking if username exists...");
+        const usernameExists = await User.findOne({ username });
+        if (usernameExists) {
+            console.log("Username already exists");
+            return res.status(400).json({ message: "Username already in use" });
+        }
+
+        console.log("Creating new user...");
+        const user = await User.create({
+            username,
+            email,
+            password,
+            role: role || "learner",
+            firstname: req.body.firstname || "",
+            lastname: req.body.lastname || ""
+        });
+
+        console.log("User created successfully:", user._id);
+
+        res.status(201).json({
+            message: `User created: username: ${username} and email: ${email}`,
+        });
+    } catch (error) {
+        console.error("=== REGISTRATION ERROR ===");
+        console.error("Error name:", error.name);
+        console.error("Error message:", error.message);
+        console.error("Full error:", error);
+        
+        // Check for duplicate key error
+        if (error.code === 11000) {
+            const field = Object.keys(error.keyPattern)[0];
+            return res.status(400).json({ 
+                message: `${field} already in use` 
+            });
+        }
+        
+        // Mongoose validation errors
+        if (error.name === 'ValidationError') {
+            const messages = Object.values(error.errors).map(err => err.message);
+            return res.status(400).json({ 
+                message: messages.join(', ') 
+            });
+        }
+        
+        // Send detailed error for debugging
+        res.status(500).json({ 
+            message: "An unexpected error occurred during registration",
+            error: error.message,
+            details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        });
+    }
 }
 
 async function loginUser(req, res) {
