@@ -11,7 +11,7 @@ passport.use(
 		},
 		// This is the "verify" callback
 		async (accessToken, refreshToken, profile, done) => {
-			console.log("This is the profile: \t\n", profile);
+			// console.log("This is the profile: \t\n", profile);
 			try {
 				// The "profile" object contains the user's GitHub information
 				const existingUser = await User.findOne({ githubId: profile.id });
@@ -29,7 +29,7 @@ passport.use(
 					password: Math.random().toString(36).slice(-8), //random password generator
 				});
 
-				console.log("newUser profile: \t\n", newUser);
+				// console.log("newUser profile: \t\n", newUser);
 
 				await newUser.save();
 				done(null, newUser);
