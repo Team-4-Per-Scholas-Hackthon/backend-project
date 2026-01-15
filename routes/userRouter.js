@@ -50,7 +50,10 @@ userRouter.get("/dashboard", authMiddleware, getUserDashboard);
 // GitHub OAuth routes
 userRouter.get(
 	"/auth/github",
-	passport.authenticate("github", { scope: ["user:email"] })
+	passport.authenticate("github", {
+		scope: ["user:email"],
+		prompt: "login",
+	})
 );
 
 userRouter.get(
@@ -62,12 +65,13 @@ userRouter.get(
 	(req, res) => {
 		const token = signToken(req.user);
 		// res.redirect(`http://localhost:5173?token=${token}`);
-		//res.json({ token, user: req.user });
+
+		//send the data back to the opener window (main window) and close the popup
 		res.send(`
       <script>
         window.opener.postMessage(
           ${JSON.stringify({ token, user: req.user })},
-          "${process.env.FRONTEND_URL}"
+          "${process.env.FRONTEND_URL || "http://localhost:5173"}"
         );
         window.close();
       </script>
