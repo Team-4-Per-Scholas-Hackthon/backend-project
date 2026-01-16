@@ -48,13 +48,15 @@ userRouter.get("/alumni", async (req, res) => {
 userRouter.get("/dashboard", authMiddleware, getUserDashboard);
 
 // GitHub OAuth routes
-userRouter.get(
-	"/auth/github",
+userRouter.get("/auth/github", (req, res, next) => {
+	const role = req.query.role || "learner"; //get the role from query params, default to 'learner'
+	const state = JSON.stringify({ role }); //save the role into state parameter to be used when in the callback
 	passport.authenticate("github", {
-		scope: ["user:email"],
-		prompt: "login",
-	})
-);
+		scope: ["user:email"], //scope to get user's email
+		prompt: "login", //force login prompt
+		state: state, //pass the state parameter
+	})(req, res, next); //this is a IIFE to call the function returned by passport.authenticate
+});
 
 userRouter.get(
 	"/auth/github/callback",
