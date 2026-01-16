@@ -7,12 +7,17 @@ passport.use(
 		{
 			clientID: process.env.GITHUB_CLIENT_ID,
 			clientSecret: process.env.GITHUB_CLIENT_SECRET,
-			callbackURL: process.env.GITHUB_CALLBACK_URL, // e.g., 'http://localhost:3001/api/users/auth/github/callback'
+			callbackURL: process.env.GITHUB_CALLBACK_URL,
+			passReqToCallback: true, // allows us to pass back the entire request to the callback
 		},
 		// This is the "verify" callback
-		async (accessToken, refreshToken, profile, done) => {
+		async (req, accessToken, refreshToken, profile, done) => {
 			// console.log("This is the profile: \t\n", profile);
 			try {
+				// Read the role from the OAuth state
+				const state = JSON.parse(req.query.state);
+				const roleFromFrontend = state.role;
+
 				// The "profile" object contains the user's GitHub information
 				const existingUser = await User.findOne({ githubId: profile.id });
 
@@ -21,12 +26,18 @@ passport.use(
 					return done(null, existingUser);
 				}
 
+				// Validate the role
+				if (["learner", "alumni"].indexOf(roleFromFrontend) === -1) {
+					return done(new Error("Invalid role"), null);
+				}
+
 				// If it's a new user, create a record in our database
 				const newUser = new User({
 					githubId: profile.id,
 					username: profile.username,
 					email: profile.emails ? profile.emails[0].value : "test@mail.com", // Some providers return an array of emails
 					password: Math.random().toString(36).slice(-8), //random password generator
+					role: roleFromFrontend || "learner", //default role is learner
 				});
 
 				// console.log("newUser profile: \t\n", newUser);

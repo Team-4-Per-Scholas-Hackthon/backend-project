@@ -56,7 +56,7 @@ async function deleteUser(req, res) {
 
 // async function registerUser(req, res) {
 // 	try {
-		
+
 // 		//check if email exist
 // 		const alreadyExist = await User.findOne({ email: req.body.email });
 // 		if (alreadyExist) {
@@ -81,80 +81,85 @@ async function deleteUser(req, res) {
 // 	}
 // }
 
-
 async function registerUser(req, res) {
-    try {
-        console.log("=== REGISTRATION ATTEMPT ===");
-        console.log("Request body:", req.body);
-        
-        const { username, email, password, role } = req.body;
+	try {
+		console.log("=== REGISTRATION ATTEMPT ===");
+		console.log("Request body:", req.body);
 
-        // Validate required fields
-        if (!username || !email || !password) {
-            console.log("Missing required fields");
-            return res.status(400).json({ 
-                message: "Username, email, and password are required" 
-            });
-        }
+		const { username, email, password, role } = req.body;
 
-        console.log("Checking if email exists...");
-        const alreadyExist = await User.findOne({ email });
-        if (alreadyExist) {
-            console.log("Email already exists");
-            return res.status(400).json({ message: "Email already exists" });
-        }
+		// Validate required fields
+		if (!username || !email || !password) {
+			console.log("Missing required fields");
+			return res.status(400).json({
+				message: "Username, email, and password are required",
+			});
+		}
 
-        console.log("Checking if username exists...");
-        const usernameExists = await User.findOne({ username });
-        if (usernameExists) {
-            console.log("Username already exists");
-            return res.status(400).json({ message: "Username already in use" });
-        }
+		console.log("Checking if email exists...");
+		const alreadyExist = await User.findOne({ email });
+		if (alreadyExist) {
+			console.log("Email already exists");
+			return res.status(400).json({ message: "Email already exists" });
+		}
 
-        console.log("Creating new user...");
-        const user = await User.create({
-            username,
-            email,
-            password,
-            role: role || "learner",
-            firstname: req.body.firstname || "",
-            lastname: req.body.lastname || ""
-        });
+		console.log("Checking if username exists...");
+		const usernameExists = await User.findOne({ username });
+		if (usernameExists) {
+			console.log("Username already exists");
+			return res.status(400).json({ message: "Username already in use" });
+		}
 
-        console.log("User created successfully:", user._id);
+		//validate users role
+		if (role && !["learner", "alumni"].includes(role)) {
+			console.log("Invalid role provided:", role);
+			return res.status(400).json({ message: "Invalid role" });
+		}
 
-        res.status(201).json({
-            message: `User created: username: ${username} and email: ${email}`,
-        });
-    } catch (error) {
-        console.error("=== REGISTRATION ERROR ===");
-        console.error("Error name:", error.name);
-        console.error("Error message:", error.message);
-        console.error("Full error:", error);
-        
-        // Check for duplicate key error
-        if (error.code === 11000) {
-            const field = Object.keys(error.keyPattern)[0];
-            return res.status(400).json({ 
-                message: `${field} already in use` 
-            });
-        }
-        
-        // Mongoose validation errors
-        if (error.name === 'ValidationError') {
-            const messages = Object.values(error.errors).map(err => err.message);
-            return res.status(400).json({ 
-                message: messages.join(', ') 
-            });
-        }
-        
-        // Send detailed error for debugging
-        res.status(500).json({ 
-            message: "An unexpected error occurred during registration",
-            error: error.message,
-            details: process.env.NODE_ENV === 'development' ? error.stack : undefined
-        });
-    }
+		console.log("Creating new user...");
+		const user = await User.create({
+			username,
+			email,
+			password,
+			role: role || "learner",
+			firstname: req.body.firstname || "",
+			lastname: req.body.lastname || "",
+		});
+
+		console.log("User created successfully:", user._id);
+
+		res.status(201).json({
+			message: `User created: username: ${username} and email: ${email}`,
+		});
+	} catch (error) {
+		console.error("=== REGISTRATION ERROR ===");
+		console.error("Error name:", error.name);
+		console.error("Error message:", error.message);
+		console.error("Full error:", error);
+
+		// Check for duplicate key error
+		if (error.code === 11000) {
+			const field = Object.keys(error.keyPattern)[0];
+			return res.status(400).json({
+				message: `${field} already in use`,
+			});
+		}
+
+		// Mongoose validation errors
+		if (error.name === "ValidationError") {
+			const messages = Object.values(error.errors).map((err) => err.message);
+			return res.status(400).json({
+				message: messages.join(", "),
+			});
+		}
+
+		// Send detailed error for debugging
+		res.status(500).json({
+			message: "An unexpected error occurred during registration",
+			error: error.message,
+			details: process.env.NODE_ENV === "development" ? error.stack : undefined,
+		});
+	}
 }
 
 async function loginUser(req, res) {
@@ -192,32 +197,32 @@ async function loginUser(req, res) {
 	} catch (error) {}
 }
 async function getUserDashboard(req, res) {
-  try {
-    if (!req.user) return res.status(401).json({ message: "Unauthorized" });
+	try {
+		if (!req.user) return res.status(401).json({ message: "Unauthorized" });
 
-    const user = await User.findById(req.user._id).select(
-      "username firstname lastname email role skills cohort sessions availability createdAt updatedAt"
-    );
+		const user = await User.findById(req.user._id).select(
+			"username firstname lastname email role skills cohort sessions availability createdAt updatedAt"
+		);
 
-    if (!user) return res.status(404).json({ error: "User not found" });
+		if (!user) return res.status(404).json({ error: "User not found" });
 
-    res.json({
-      _id: user._id,
-      username: user.username,
-      firstname: user.firstname,
-      lastname: user.lastname,
-      email: user.email,
-      role: user.role,
-      skills: user.skills,
-      cohort: user.cohort,
-      sessions: user.sessions,
-      availability: user.availability,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt,
-    });
-  } catch (err) {
-    res.status(400).json({ error: "Invalid request" });
-  }
+		res.json({
+			_id: user._id,
+			username: user.username,
+			firstname: user.firstname,
+			lastname: user.lastname,
+			email: user.email,
+			role: user.role,
+			skills: user.skills,
+			cohort: user.cohort,
+			sessions: user.sessions,
+			availability: user.availability,
+			createdAt: user.createdAt,
+			updatedAt: user.updatedAt,
+		});
+	} catch (err) {
+		res.status(400).json({ error: "Invalid request" });
+	}
 }
 // async function getUserDashboard(req, res) {
 //   try {
@@ -246,7 +251,6 @@ async function getUserDashboard(req, res) {
 //   }
 // }
 
-
 module.exports = {
 	listUsers,
 	getUserById,
@@ -255,5 +259,5 @@ module.exports = {
 	deleteUser,
 	registerUser,
 	loginUser,
-	getUserDashboard
+	getUserDashboard,
 };
