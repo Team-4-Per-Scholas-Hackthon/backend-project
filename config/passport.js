@@ -26,6 +26,11 @@ passport.use(
 					return done(null, existingUser);
 				}
 
+				// Validate the role
+				if (["learner", "alumni"].indexOf(roleFromFrontend) === -1) {
+					return done(new Error("Invalid role"), null);
+				}
+
 				// If it's a new user, create a record in our database
 				const newUser = new User({
 					githubId: profile.id,
