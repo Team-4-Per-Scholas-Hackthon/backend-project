@@ -28,6 +28,8 @@ const UserSchema = new Schema(
     },
     githubId: { type: String },
     password: { type: String, required: true },
+    resetPasswordTokenHash: { type: String, select: false },
+    resetPasswordExpiresAt: { type: Date },
     role: {
       type: String,
       enum: ["alumni", "learner", "admin"],

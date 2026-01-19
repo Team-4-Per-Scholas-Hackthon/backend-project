@@ -8,6 +8,8 @@ const {
 	deleteUser,
 	registerUser,
 	loginUser,
+	forgotPassword,
+	resetPassword,
 	getUserDashboard,
 } = require("../controllers/userController");
 
@@ -229,5 +231,7 @@ userRouter.put("/:id", authMiddleware, updateUser);
 
 // DELETE /users/:id - delete a user
 userRouter.delete("/:id", authMiddleware, deleteUser);
+userRouter.post("/forgot-password", forgotPassword);
+userRouter.post("/reset-password", resetPassword);
 
 module.exports = userRouter;
