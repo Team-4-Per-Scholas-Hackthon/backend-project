@@ -247,13 +247,13 @@ async function forgotPassword(req, res) {
 		});
 		return res.json({
 			message: "If an account exists for that email, a reset link will be sent.",
-			// For hackathon/testing only — remove later:
+
 			// resetLink, // ❌ remove in production
 		});
 	} catch (err) {
 		// return res.status(500).json({ message: "Server error" });
 		console.error("FORGOT/RESET PASSWORD ERROR:", err);
-return res.status(500).json({ message: err.message || "Server error" });
+		return res.status(500).json({ message: err.message || "Server error" });
 	}
 }
 
