@@ -3,6 +3,11 @@ const jwt = require("jsonwebtoken");
 const secret = process.env.JWT_SECRET;
 const expiration = "24h"; // Token will be valid for 2 hours
 
+const crypto = require("crypto");
+const bcrypt = require("bcrypt");
+
+const { sendMail } = require("../utils/mailer");
+
 async function listUsers(req, res) {
 	try {
 		const users = await User.find();
@@ -196,6 +201,105 @@ async function loginUser(req, res) {
 		res.json({ token, dbUser });
 	} catch (error) {}
 }
+
+/** forgotPassword */
+async function forgotPassword(req, res) {
+	try {
+		console.log("FORGOT PASSWORD HIT:", req.body);
+
+		const { email } = req.body;
+		if (!email) return res.status(400).json({ message: "Email is required" });
+
+		const user = await User.findOne({ email });
+
+		// Always return the same message (avoid leaking which emails exist)
+		if (!user) {
+			return res.json({
+				message: "If an account exists for that email, a reset link will be sent.",
+			});
+		}
+
+		// Create a random token (send to user)
+		const resetToken = crypto.randomBytes(32).toString("hex");
+
+		// Hash token before saving (so DB leak doesn't allow resets)
+		const tokenHash = await bcrypt.hash(resetToken, 10);
+
+		user.resetPasswordTokenHash = tokenHash;
+		user.resetPasswordExpiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+		await user.save();
+
+		// MVP: log link in console (later replace with email service like SendGrid/Resend)
+		const resetLink = `${process.env.FRONTEND_URL}/reset-password?email=${encodeURIComponent(
+			email
+		)}&token=${resetToken}`;
+
+		// console.log("🔐 Password reset link:", resetLink);
+		await sendMail({
+		to: user.email,
+		subject: "Reset your PeerTrack+ password",
+		html: `
+			<p>You requested a password reset.</p>
+			<p>Click the link below to reset your password:</p>
+			<a href="${resetLink}">${resetLink}</a>
+			<p>This link expires in 15 minutes.</p>
+		`,
+		});
+		return res.json({
+			message: "If an account exists for that email, a reset link will be sent.",
+
+			// resetLink, // ❌ remove in production
+		});
+	} catch (err) {
+		// return res.status(500).json({ message: "Server error" });
+		console.error("FORGOT/RESET PASSWORD ERROR:", err);
+		return res.status(500).json({ message: err.message || "Server error" });
+	}
+}
+
+async function resetPassword(req, res) {
+	try {
+		const { email, token, newPassword } = req.body;
+
+		if (!email || !token || !newPassword) {
+			return res.status(400).json({
+				message: "email, token, and newPassword are required",
+			});
+		}
+
+		const user = await User.findOne({ email }).select(
+			"+resetPasswordTokenHash resetPasswordExpiresAt"
+		);
+
+		if (!user || !user.resetPasswordTokenHash) {
+			return res.status(400).json({ message: "Invalid or expired reset token" });
+		}
+
+		if (user.resetPasswordExpiresAt && user.resetPasswordExpiresAt < new Date()) {
+			return res.status(400).json({ message: "Invalid or expired reset token" });
+		}
+
+		const tokenMatches = await bcrypt.compare(token, user.resetPasswordTokenHash);
+		if (!tokenMatches) {
+			return res.status(400).json({ message: "Invalid or expired reset token" });
+		}
+
+		// Update password (your User pre-save hook will hash it)
+		user.password = newPassword;
+
+		// Invalidate token (single-use)
+		user.resetPasswordTokenHash = undefined;
+		user.resetPasswordExpiresAt = undefined;
+
+		await user.save();
+
+		return res.json({ message: "Password reset successful" });
+	} catch (err) {
+		return res.status(500).json({ message: "Server error" });
+	}
+}
+/******* */
+
 async function getUserDashboard(req, res) {
 	try {
 		if (!req.user) return res.status(401).json({ message: "Unauthorized" });
@@ -260,4 +364,6 @@ module.exports = {
 	registerUser,
 	loginUser,
 	getUserDashboard,
+	forgotPassword,
+	resetPassword,
 };
