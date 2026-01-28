@@ -34,7 +34,7 @@ userRouter.get("/alumni", async (req, res) => {
 
 		const alumni = await User.find({ role: "alumni" })
 			.select(
-				"username firstname lastname email skills cohort bio availability"
+				"username firstname lastname email skills cohort bio availability",
 			)
 			.sort({ createdAt: -1 });
 
@@ -80,7 +80,41 @@ userRouter.get(
         window.close();
       </script>
     `);
-	}
+	},
+);
+
+// Google OAuth routes
+userRouter.get("/auth/google", (req, res, next) => {
+	const role = req.query.role || "learner"; //get the role from query params, default to 'learner'
+	const state = JSON.stringify({ role }); //save the role into state parameter to be used when in the callback
+	passport.authenticate("google", {
+		scope: ["profile", "email"], //scope to get user's email
+		state: state, //pass the state parameter
+	})(req, res, next); //this is a IIFE to call the function returned by passport.authenticate
+});
+
+//google callback URI
+userRouter.get(
+	"/auth/google/callback",
+	passport.authenticate("google", {
+		failureRedirect: "/login",
+		session: false,
+	}),
+	(req, res) => {
+		const token = signToken(req.user);
+		// res.redirect(`http://localhost:5173?token=${token}`);
+
+		//send the data back to the opener window (main window) and close the popup
+		res.send(`
+      <script>
+        window.opener.postMessage(
+          ${JSON.stringify({ token, user: req.user })},
+          "${process.env.FRONTEND_URL || "http://localhost:5173"}"
+        );
+        window.close();
+      </script>
+    `);
+	},
 );
 
 // GET /users/me/profile - Get current user's profile
@@ -180,7 +214,7 @@ userRouter.get("/", listUsers);
 userRouter.get("/:id/availability", async (req, res) => {
 	try {
 		const user = await User.findById(req.params.id).select(
-			"username firstname lastname availability"
+			"username firstname lastname availability",
 		);
 
 		if (!user) return res.status(404).json({ error: "User not found" });
