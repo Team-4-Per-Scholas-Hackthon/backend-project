@@ -1,5 +1,7 @@
 const passport = require("passport");
 const GitHubStrategy = require("passport-github2").Strategy;
+const GoogleStrategy = require("passport-google-oauth20").Strategy;
+
 const User = require("../models/User");
 
 passport.use(
@@ -43,12 +45,61 @@ passport.use(
 				// console.log("newUser profile: \t\n", newUser);
 
 				await newUser.save();
-				done(null, newUser);
+				done(null, { provider: "github", user: newUser });
 			} catch (err) {
 				done(err);
 			}
-		}
-	)
+		},
+	),
+);
+
+//google
+
+passport.use(
+	new GoogleStrategy(
+		{
+			clientID: process.env.GOOGLE_CLIENT_ID,
+			clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+			callbackURL: process.env.GOOGLE_CALLBACK_URL,
+			passReqToCallback: true,
+		},
+		async (req, accessToken, refreshToken, profile, done) => {
+			try {
+				// Read the role from the OAuth state
+				const state = JSON.parse(req.query.state);
+				const roleFromFrontend = state.role;
+
+				let existingUser = await User.findOne({ googleId: profile.id });
+
+				if (existingUser) {
+					// If user already exists, pass them to the next middleware
+					return done(null, existingUser);
+				}
+
+				// Validate the role
+				if (["learner", "alumni"].indexOf(roleFromFrontend) === -1) {
+					return done(new Error("Invalid role"), null);
+				}
+
+				console.log("Google profile: \t\n", profile);
+
+				const newUser = await User.create({
+					googleId: profile.id,
+					username: profile.displayName,
+					name: profile.displayName,
+					email: profile.emails ? profile.emails[0].value : "test@mail.com",
+					password: Math.random().toString(36).slice(-8), //random password generator
+					role: roleFromFrontend || "learner", //default role is learner
+				});
+
+				console.log("newUser Google profile: \t\n", newUser);
+				await newUser.save();
+				done(null, { provider: "google", user: newUser });
+			} catch (err) {
+				done(err, null);
+			}
+		},
+	),
 );
 
 // These functions are needed for session management
