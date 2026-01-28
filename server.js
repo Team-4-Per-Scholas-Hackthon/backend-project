@@ -4,6 +4,7 @@ const cors = require("cors");
 const dotenv = require("dotenv");
 const dbConnect = require("./config/dbConnect");
 
+
 dotenv.config();
 
 //Database Connection
@@ -31,6 +32,7 @@ require("./config/passport");
 app.use("/users", require("./routes/userRouter"));
 app.use("/requests", require("./routes/requestRouter"));
 app.use("/availability", require("./routes/availabilityRouter"));
+
 
 app.get("/", (req, res) => {
 	res.send("PeerTrack+ API is running!");
