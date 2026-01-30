@@ -15,7 +15,7 @@ const UserSchema = new Schema(
 			default: "both",
 		},
 		timezone: { type: String, default: "America/New_York" },
-		username: { type: String, required: true, unique: true, trim: true },
+		username: { type: String, required: true, trim: true },
 		firstname: { type: String, trim: true },
 		lastname: { type: String, trim: true },
 		email: {
