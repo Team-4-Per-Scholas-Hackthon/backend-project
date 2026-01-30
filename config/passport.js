@@ -45,7 +45,7 @@ passport.use(
 				// console.log("newUser profile: \t\n", newUser);
 
 				await newUser.save();
-				done(null, { provider: "github", user: newUser });
+				done(null, newUser);
 			} catch (err) {
 				done(err);
 			}
@@ -94,7 +94,7 @@ passport.use(
 
 				console.log("newUser Google profile: \t\n", newUser);
 				await newUser.save();
-				done(null, { provider: "google", user: newUser });
+				done(null, newUser);
 			} catch (err) {
 				done(err, null);
 			}
