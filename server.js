@@ -38,7 +38,7 @@ app.get("/", (req, res) => {
 	res.send("PeerTrack+ API is running!");
 });
 
-// Error handling middleware
+// Error handling middlewareurlencode
 app.use((err, req, res, next) => {
   console.error("Unhandled error:", err);
   res.status(500).json({ 

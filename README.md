@@ -75,7 +75,7 @@ backend-project
     requestRouter.js
  server.js
  package.json
- .env
+ .env # do not commit it
 
 Front-project
 src/
@@ -100,6 +100,7 @@ pages/
 - Requests (TutoringRequest):               POST /requests
 - List requests (role-based):               GET /requests
 - Accept/Decline request (Alumni/Admin):    PATCH /requests/:id/accept/Decline
+- Forgot Password                           POST /users/forgot-password
 
 ## Workflow Summary
 
@@ -121,4 +122,26 @@ pages/
     Points/Badges system + leaderboard
     Notifications (email/in-app)
 
+## Environment Variables
 
+### Local Development (Email Testing)
+The project uses Mailtrap for email testing in development.
+
+Required variables:
+- MAIL_PROVIDER=mailtrap
+- MAILTRAP_HOST
+- MAILTRAP_PORT
+- MAILTRAP_USER
+- MAILTRAP_PASS
+- MAIL_FROM
+
+### Production (Email Sending)
+In production, configure a real email provider (e.g. SendGrid).
+
+Required variables:
+- MAIL_PROVIDER=sendgrid
+- SMTP_HOST
+- SMTP_PORT
+- SMTP_USER
+- SMTP_PASS
+- MAIL_FROM
